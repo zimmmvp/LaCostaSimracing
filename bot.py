@@ -1,35 +1,26 @@
 import os
 import random
 import datetime
-import pytz
-import discord
-from discord.ext import tasks
 from ftplib import FTP
+import discord
 
-# --- CONFIGURACIÓN ---
-DISCORD_TOKEN = "PEGAR_AQUI_TU_TOKEN_DE_DISCORD"
-CANAL_AVISOS_ID = 123456789012345678  # Reemplaza con el ID numérico de tu canal de Discord
+# --- LEER DATOS SEGUROS DESDE GITHUB SECRETS ---
+DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
+CANAL_AVISOS_ID = int(os.environ.get("CANAL_AVISOS_ID"))
 
-# Datos de tu FTP (te los da tu proveedor de hosting de Assetto Corsa)
-FTP_HOST = "ftp.tu-servidor.com"
-FTP_USER = "tu_usuario_ftp"
-FTP_PASS = "tu_contraseña_ftp"
-FTP_PORT = 21  # Generalmente es 21
-
-# Zona horaria
-TZ = pytz.timezone('America/Argentina/Buenos_Aires')
+FTP_HOST = os.environ.get("FTP_HOST")
+FTP_USER = os.environ.get("FTP_USER")
+FTP_PASS = os.environ.get("FTP_PASS")
+FTP_PORT = 21
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
 def elegir_aleatorio():
-    # Lee circuitos
     with open('circuitos.txt', 'r', encoding='utf-8') as f:
         circuitos = [line.strip() for line in f if line.strip()]
-    # Lee autos
     with open('autos.txt', 'r', encoding='utf-8') as f:
         autos = [line.strip() for line in f if line.strip()]
-        
     return random.choice(circuitos), random.choice(autos)
 
 def actualizar_servidor_ftp(circuito, auto):
@@ -38,12 +29,11 @@ def actualizar_servidor_ftp(circuito, auto):
         ftp.connect(FTP_HOST, FTP_PORT)
         ftp.login(FTP_USER, FTP_PASS)
         
-        # Nota: Dependiendo del hosting, el server_cfg.ini suele estar en la raíz o en una carpeta cfg/
         # Descargamos el archivo de configuración actual
         with open('server_cfg.ini', 'wb') as f:
-            ftp.retrbinary('RETR cfg/server_cfg.ini', f.write) # Cambiar la ruta si tu hosting usa otra
+            ftp.retrbinary('RETR cfg/server_cfg.ini', f.write)
             
-        # Modificamos el archivo localmente
+        # Modificamos el circuito localmente
         with open('server_cfg.ini', 'r', encoding='utf-8') as f:
             lineas = f.readlines()
             
@@ -52,14 +42,11 @@ def actualizar_servidor_ftp(circuito, auto):
                 if linea.startswith('TRACK='):
                     f.write(f'TRACK={circuito}\n')
                 elif linea.startswith('CONFIG_TRACK='):
-                    f.write('CONFIG_TRACK=\n') # Por si usa variante vacía
-                elif 'MODEL=' in linea: # Para asegurar el auto en la entry list o config principal
-                    # Depende de cómo estructures tu entry_list.ini, pero por ahora actualizamos el cfg principal
-                    f.write(linea)
+                    f.write('CONFIG_TRACK=\n')
                 else:
                     f.write(linea)
                     
-        # Volvemos a subir el archivo modificado por FTP
+        # Volvemos a subir el archivo modificado
         with open('server_cfg.ini', 'rb') as f:
             ftp.storbinary('STOR cfg/server_cfg.ini', f)
             
@@ -70,17 +57,15 @@ def actualizar_servidor_ftp(circuito, auto):
 
 @client.event
 async def on_ready():
-    print(f'Bot conectado como {client.user}')
-    rotacion_diaria.start()
-
-@tasks.loop(time=datetime.time(hour=5, minute=0, tzinfo=TZ))
-async def rotacion_diaria():
+    print(f'Bot ejecutándose en la nube de GitHub Actions...')
+    
+    # 1. Elegir circuito y auto
     circuito, auto = elegir_aleatorio()
     
-    # Actualizar servidor de Assetto Corsa vía FTP
+    # 2. Actualizar el servidor de Assetto Corsa por FTP
     actualizar_servidor_ftp(circuito, auto)
     
-    # Mandar aviso a Discord
+    # 3. Mandar el aviso a Discord
     canal = client.get_channel(CANAL_AVISOS_ID)
     if canal:
         embed = discord.Embed(
@@ -90,8 +75,11 @@ async def rotacion_diaria():
         )
         embed.add_field(name="📍 Circuito", value=f"`{circuito}`", inline=False)
         embed.add_field(name="🏎️ Auto Asignado", value=f"`{auto}`", inline=False)
-        embed.set_footer(text="Actualización automática de las 05:00 AM | Costa Sim Racing")
+        embed.set_footer(text="Actualización automática diaria | Costa Sim Racing")
         
         await canal.send(embed=embed)
+    
+    # Cerramos el bot una vez que cumple su tarea en GitHub Actions
+    await client.close()
 
 client.run(DISCORD_TOKEN)
