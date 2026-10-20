@@ -2,7 +2,6 @@ import os
 import random
 import datetime
 import discord
-from ftplib import FTP
 import paramiko
 
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
@@ -35,26 +34,21 @@ def actualizar_servidor_sftp(circuito, auto):
     try:
         print(f"Conectando por SFTP a {SFTP_HOST}:{SFTP_PORT}...")
         
-        # Conexión SSH / SFTP
         transport = paramiko.Transport((SFTP_HOST, SFTP_PORT))
         transport.connect(username=SFTP_USER, password=SFTP_PASS)
         sftp = paramiko.SFTPClient.from_transport(transport)
-        
         print("¡Conectado por SFTP con éxito!")
         
-        # Ruta remota del archivo en Minehost (dentro de cfg/)
-        ruta_remota = 'cfg/server_cfg.ini'
-        archivo_local = 'server_cfg.ini'
+        # 1. ACTUALIZAR CIRCUITO EN server_cfg.ini
+        ruta_cfg = 'cfg/server_cfg.ini'
+        local_cfg = 'server_cfg.ini'
         
-        # Descargar archivo del servidor
-        sftp.get(ruta_remota, archivo_local)
-        print("Archivo de configuración descargado.")
+        sftp.get(ruta_cfg, local_cfg)
         
-        # Modificar localmente
-        with open(archivo_local, 'r', encoding='utf-8') as f:
+        with open(local_cfg, 'r', encoding='utf-8') as f:
             lineas = f.readlines()
             
-        with open(archivo_local, 'w', encoding='utf-8') as f:
+        with open(local_cfg, 'w', encoding='utf-8') as f:
             for linea in lineas:
                 if linea.startswith('TRACK='):
                     f.write(f'TRACK={circuito}\n')
@@ -63,9 +57,28 @@ def actualizar_servidor_sftp(circuito, auto):
                 else:
                     f.write(linea)
                     
-        # Subir el archivo modificado de vuelta al servidor
-        sftp.put(archivo_local, ruta_remota)
-        print("¡Archivo modificado y subido al servidor con éxito!")
+        sftp.put(local_cfg, ruta_cfg)
+        print("¡Circuito actualizado en server_cfg.ini con éxito!")
+
+        # 2. ACTUALIZAR AUTOS EN entry_list.ini
+        ruta_entry = 'cfg/entry_list.ini'
+        local_entry = 'entry_list.ini'
+        
+        sftp.get(ruta_entry, local_entry)
+        
+        with open(local_entry, 'r', encoding='utf-8') as f:
+            lineas_entry = f.readlines()
+            
+        with open(local_entry, 'w', encoding='utf-8') as f:
+            for linea in lineas_entry:
+                # Reemplazamos el MODEL en cada slot de la grilla
+                if linea.startswith('MODEL='):
+                    f.write(f'MODEL={auto}\n')
+                else:
+                    f.write(linea)
+                    
+        sftp.put(local_entry, ruta_entry)
+        print("¡Grilla de autos actualizada en entry_list.ini con éxito!")
         
         sftp.close()
         transport.close()
