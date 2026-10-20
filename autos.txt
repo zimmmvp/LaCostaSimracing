@@ -1,0 +1,9 @@
+tnclase3_vento
+tnclase3_tipo
+tnclase3_focus
+tnclase3_corolla
+tnclase3_civic
+fiat_uno
+reg_aptp_c1_uno
+fiat_147
+fiat_128
