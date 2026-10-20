@@ -24,6 +24,7 @@
   "categorias": [
     {
       "nombre": "Turismo Nacional Clase 3",
+	  "cars": "tnclase3_vento", "tnclase3_tipo", "tnclase3_focus", "tnclase3_cruze", "tnclase3_corolla", "tnclase3_civic", 
       "slots": [
         { "model": "tnclase3_vento", "skin": "1 - Leonel Pernía" },
         { "model": "tnclase3_vento", "skin": "81_Carabajal_Lucas" },
@@ -53,6 +54,7 @@
     },
     {
       "nombre": "Turismo Nacional Clase 2",
+	  "cars": "jc_vw_gol_2020_tn", "jc_citroen_ds3_2020_tn", "jc_toyota_etios_2020_tn", "jc_renault_kwid_2020_tn", "jc_renault_clio_mio_2020_tn", "jc_nissan_march_2020_tn", "jc_ford_fiesta_2020_tn", "jc_chevrolet_onix_2020_tn", "jc_fiat_argo_2020_tn", 
       "slots": [
         { "model": "jc_vw_gol_2020_tn", "skin": "75" },
         { "model": "jc_vw_gol_2020_tn", "skin": "Holden" },
@@ -82,6 +84,7 @@
     },
     {
       "nombre": "Fiat Monomarca",
+	  "cars": "fiat_147", "fiat_128", "fiat_uno", 
       "slots": [
         { "model": "fiat_147", "skin": "147_1" },
         { "model": "fiat_147", "skin": "147_2" },
