@@ -1,0 +1,116 @@
+{
+  "circuitos": [
+    "sanluis2",
+    "bsas_h22",
+    "apvs_rio_cuarto",
+    "apvs_termas"
+	"balcarce"
+	"posadas"
+	"zonda"
+	"ale_ils_parana"
+	"apvs_concepcion"
+	"cabalen_h22"
+	"9_de_julio_h22"
+	"apvs_calafate"
+	"apvs_viedma"
+	"autodromo_sincordia_sudamericano"
+	"apvs_rafaela"
+	"apvs_la_plata"
+	"salta_h22"
+	"apvs_neuquen"
+	"apvs_rosario"
+	"sannicolas"
+  ],
+  "categorias": [
+    {
+      "nombre": "Turismo Nacional Clase 3",
+      "slots": [
+        { "model": "tnclase3_vento", "skin": "1 - Leonel Pernía" },
+        { "model": "tnclase3_vento", "skin": "81_Carabajal_Lucas" },
+        { "model": "tnclase3_vento", "skin": "82_Lambiris_Mauricio" }
+		{ "model": "tnclase3_vento", "skin": "LUGON 2025" }
+		{ "model": "tnclase3_tipo", "skin": "16 - Fabián Yannantuoni" }
+		{ "model": "tnclase3_tipo", "skin": "23 - Mariano Pernía" }
+		{ "model": "tnclase3_focus", "skin": "15-Franetovich_Ever" }
+		{ "model": "tnclase3_focus", "skin": "231-Urcera_Manuel" }
+		{ "model": "tnclase3_focus", "skin": "2022-95-Emanuel_Abdala" }
+		{ "model": "tnclase3_focus", "skin": "MARQUES 2025" }
+		{ "model": "tnclase3_cruze", "skin": "J. Castellano" }
+		{ "model": "tnclase3_cruze", "skin": "Jorge Barrio" }
+		{ "model": "tnclase3_cruze", "skin": "TETI 2025" }
+		{ "model": "tnclase3_cruze", "skin": "GASSMAN 2025" }
+		{ "model": "tnclase3_corolla", "skin": "15 - Pezzini" }
+		{ "model": "tnclase3_corolla", "skin": "27 - Gentile" }
+		{ "model": "tnclase3_corolla", "skin": "2023-68-Julian_Santero" }
+		{ "model": "tnclase3_corolla", "skin": "VICINO 2025" }
+		{ "model": "tnclase3_civic", "skin": "1_Urcera_Jose_Manuel" }
+		{ "model": "tnclase3_civic", "skin": "100_Risatti_Ricardo" }
+		{ "model": "tnclase3_civic", "skin": "MONTANARI 2025" }
+		{ "model": "tnclase3_civic", "skin": "T.Pernia" }
+		{ "model": "tnclase3_focus", "skin": "Alfonso Domenech" }
+		{ "model": "tnclase3_focus", "skin": "CIANTINI 2025" }
+		
+      ]
+    },
+    {
+      "nombre": "Turismo Nacional Clase 2",
+      "slots": [
+        { "model": "jc_vw_gol_2020_tn", "skin": "75" },
+        { "model": "jc_vw_gol_2020_tn", "skin": "Holden" },
+        { "model": "jc_citroen_ds3_2020_tn", "skin": "82" }
+		{ "model": "jc_citroen_ds3_2020_tn", "skin": "Holden" }
+		{ "model": "jc_toyota_etios_2020_tn", "skin": "27" }
+		{ "model": "jc_toyota_etios_2020_tn", "skin": "68" }
+		{ "model": "jc_toyota_etios_2020_tn", "skin": "Holden" }
+		{ "model": "jc_renault_kwid_2020_tn", "skin": "52" }
+		{ "model": "jc_renault_kwid_2020_tn", "skin": "120" }
+		{ "model": "jc_renault_kwid_2020_tn", "skin": "Holden" }
+		{ "model": "jc_renault_clio_mio_2020_tn", "skin": "38" }
+		{ "model": "jc_renault_clio_mio_2020_tn", "skin": "666" }
+		{ "model": "jc_renault_clio_mio_2020_tn", "skin": "Holden" }
+		{ "model": "jc_nissan_march_2020_tn", "skin": "16" }
+		{ "model": "jc_nissan_march_2020_tn", "skin": "30" }
+		{ "model": "jc_nissan_march_2020_tn", "skin": "35" }
+		{ "model": "jc_ford_fiesta_2020_tn", "skin": "36" }
+		{ "model": "jc_ford_fiesta_2020_tn", "skin": "55" }
+		{ "model": "jc_ford_fiesta_2020_tn", "skin": "140" }
+		{ "model": "jc_chevrolet_onix_2020_tn", "skin": "55" }
+		{ "model": "jc_chevrolet_onix_2020_tn", "skin": "79" }
+		{ "model": "jc_chevrolet_onix_2020_tn", "skin": "113" }
+		{ "model": "jc_fiat_argo_2020_tn", "skin": "45" }
+		{ "model": "jc_fiat_argo_2020_tn", "skin": "24" }
+		
+      ]
+	},
+    {
+      "nombre": "Fiat Monomarca",
+      "slots": [
+        { "model": "fiat_147", "skin": "147_1" },
+        { "model": "fiat_147", "skin": "147_2" },
+        { "model": "fiat_147", "skin": "147_3" }
+		{ "model": "fiat_147", "skin": "147_7" }
+		{ "model": "fiat_147", "skin": "147_22" }
+		{ "model": "fiat_147", "skin": "147_44" }
+		{ "model": "fiat_147", "skin": "147_69" }
+		{ "model": "fiat_147", "skin": "147_112" }
+		{ "model": "fiat_128", "skin": "128_04" }
+		{ "model": "fiat_128", "skin": "128_12" }
+		{ "model": "fiat_128", "skin": "128_27" }
+		{ "model": "fiat_128", "skin": "128_28" }
+		{ "model": "fiat_128", "skin": "128_46" }
+		{ "model": "fiat_128", "skin": "128_43" }
+		{ "model": "fiat_128", "skin": "128_92" }
+		{ "model": "fiat_128", "skin": "128_01" }
+		{ "model": "fiat_uno", "skin": "uno_01" }
+		{ "model": "fiat_uno", "skin": "uno_02" }
+		{ "model": "fiat_uno", "skin": "uno_03" }
+		{ "model": "fiat_uno", "skin": "uno_04" }
+		{ "model": "fiat_uno", "skin": "uno_05" }
+		{ "model": "fiat_uno", "skin": "uno_06" }
+		{ "model": "fiat_uno", "skin": "uno_07" }
+		{ "model": "fiat_uno", "skin": "uno_gris" }
+		
+      ]
+    }
+  ]
+}
