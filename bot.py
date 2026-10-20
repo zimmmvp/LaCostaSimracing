@@ -1,24 +1,24 @@
 import os
 import random
 import datetime
-from ftplib import FTP
 import discord
+from ftplib import FTP
+import paramiko
 
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 CANAL_AVISOS_ID = int(os.environ.get("CANAL_AVISOS_ID"))
 
-FTP_HOST = os.environ.get("FTP_HOST")
-FTP_USER = os.environ.get("FTP_USER")
-FTP_PASS = os.environ.get("FTP_PASS")
-FTP_PORT = 21
+SFTP_HOST = os.environ.get("FTP_HOST")
+SFTP_USER = os.environ.get("FTP_USER")
+SFTP_PASS = os.environ.get("FTP_PASS")
+SFTP_PORT = 2022  # Puerto SFTP de Minehost
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
 def elegir_aleatorio():
-    # Asegurarnos de leer bien los archivos de texto
     if not os.path.exists('circuitos.txt') or not os.path.exists('autos.txt'):
-        raise FileNotFoundError("No se encuentran los archivos circuitos.txt o autos.txt en el repositorio.")
+        raise FileNotFoundError("No se encuentran los archivos circuitos.txt o autos.txt")
 
     with open('circuitos.txt', 'r', encoding='utf-8') as f:
         circuitos = [line.strip() for line in f if line.strip()]
@@ -27,34 +27,34 @@ def elegir_aleatorio():
         autos = [line.strip() for line in f if line.strip()]
 
     if not circuitos or not autos:
-        raise ValueError("¡Atención! Uno de los archivos (circuitos.txt o autos.txt) está vacío.")
+        raise ValueError("Uno de los archivos de texto está vacío.")
 
     return random.choice(circuitos), random.choice(autos)
 
-def actualizar_servidor_ftp(circuito, auto):
+def actualizar_servidor_sftp(circuito, auto):
     try:
-        ftp = FTP()
-        print(f"Conectando a FTP: {FTP_HOST}...")
-        ftp.connect(FTP_HOST, FTP_PORT)
-        ftp.login(FTP_USER, FTP_PASS)
-        print("¡Conectado al FTP con éxito!")
+        print(f"Conectando por SFTP a {SFTP_HOST}:{SFTP_PORT}...")
         
-        # Probamos descargar el archivo desde la carpeta cfg/
-        nombre_archivo = 'server_cfg.ini'
-        try:
-            ftp.cwd('cfg')
-            print("Entró a la carpeta cfg/")
-        except Exception:
-            print("No se pudo entrar a la carpeta cfg/, intentando en la raíz...")
-            
-        with open(nombre_archivo, 'wb') as f:
-            ftp.retrbinary(f'RETR {nombre_archivo}', f.write)
-            
-        # Modificamos el archivo localmente
-        with open(nombre_archivo, 'r', encoding='utf-8') as f:
+        # Conexión SSH / SFTP
+        transport = paramiko.Transport((SFTP_HOST, SFTP_PORT))
+        transport.connect(username=SFTP_USER, password=SFTP_PASS)
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        
+        print("¡Conectado por SFTP con éxito!")
+        
+        # Ruta remota del archivo en Minehost (dentro de cfg/)
+        ruta_remota = 'cfg/server_cfg.ini'
+        archivo_local = 'server_cfg.ini'
+        
+        # Descargar archivo del servidor
+        sftp.get(ruta_remota, archivo_local)
+        print("Archivo de configuración descargado.")
+        
+        # Modificar localmente
+        with open(archivo_local, 'r', encoding='utf-8') as f:
             lineas = f.readlines()
             
-        with open(nombre_archivo, 'w', encoding='utf-8') as f:
+        with open(archivo_local, 'w', encoding='utf-8') as f:
             for linea in lineas:
                 if linea.startswith('TRACK='):
                     f.write(f'TRACK={circuito}\n')
@@ -63,21 +63,21 @@ def actualizar_servidor_ftp(circuito, auto):
                 else:
                     f.write(linea)
                     
-        # Volvemos a subir el archivo modificado
-        with open(nombre_archivo, 'rb') as f:
-            ftp.storbinary(f'STOR {nombre_archivo}', f)
-            
-        ftp.quit()
-        print("¡Servidor actualizado y subido por FTP con éxito!")
+        # Subir el archivo modificado de vuelta al servidor
+        sftp.put(archivo_local, ruta_remota)
+        print("¡Archivo modificado y subido al servidor con éxito!")
+        
+        sftp.close()
+        transport.close()
     except Exception as e:
-        print(f"ERROR CRÍTICO EN FTP: {e}")
+        print(f"ERROR CRÍTICO EN SFTP: {e}")
 
 @client.event
 async def on_ready():
     print(f'Bot ejecutándose en la nube de GitHub Actions...')
     
     circuito, auto = elegir_aleatorio()
-    actualizar_servidor_ftp(circuito, auto)
+    actualizar_servidor_sftp(circuito, auto)
     
     canal = client.get_channel(CANAL_AVISOS_ID)
     if canal:
