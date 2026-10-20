@@ -43,8 +43,9 @@ def actualizar_servidor_sftp(circuito, categoria):
         sftp = paramiko.SFTPClient.from_transport(transport)
         print("¡Conectado por SFTP con éxito!")
         
-        # Obtenemos el modelo principal de 'cars' definido en esa categoría en el JSON
-        modelo_cars = categoria.get("cars", "bmw_m3_e30")
+        # Obtenemos la lista de autos definidos en la categoría y los unimos con ';'
+        lista_cars = categoria.get("cars", ["bmw_m3_e30"])
+        cars_string = ";".join(lista_cars)
         slots = categoria.get("slots", [])
         
         # 1. ACTUALIZAR CIRCUITO Y CARS EN server_cfg.ini
@@ -63,13 +64,13 @@ def actualizar_servidor_sftp(circuito, categoria):
                 elif linea.startswith('CONFIG_TRACK='):
                     f.write('CONFIG_TRACK=\n')
                 elif linea.startswith('CARS='):
-                    # Asigna el modelo exacto definido en el JSON para esta categoría
-                    f.write(f'CARS={modelo_cars}\n')
+                    # Asigna todos los modelos separados por punto y coma para el servidor
+                    f.write(f'CARS={cars_string}\n')
                 else:
                     f.write(linea)
                     
         sftp.put(local_cfg, ruta_cfg)
-        print(f"¡Circuito ({circuito}) y Cars ({modelo_cars}) actualizados en server_cfg.ini con éxito!")
+        print(f"¡Circuito ({circuito}) y Cars ({cars_string}) actualizados en server_cfg.ini con éxito!")
 
         # 2. GENERAR Y ACTUALIZAR EL entry_list.ini
         ruta_entry = 'cfg/entry_list.ini'
