@@ -4,7 +4,6 @@ import datetime
 from ftplib import FTP
 import discord
 
-# --- LEER DATOS SEGUROS DESDE GITHUB SECRETS ---
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 CANAL_AVISOS_ID = int(os.environ.get("CANAL_AVISOS_ID"))
 
@@ -17,10 +16,19 @@ intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
 def elegir_aleatorio():
+    # Asegurarnos de leer bien los archivos de texto
+    if not os.path.exists('circuitos.txt') or not os.path.exists('autos.txt'):
+        raise FileNotFoundError("No se encuentran los archivos circuitos.txt o autos.txt en el repositorio.")
+
     with open('circuitos.txt', 'r', encoding='utf-8') as f:
         circuitos = [line.strip() for line in f if line.strip()]
+        
     with open('autos.txt', 'r', encoding='utf-8') as f:
         autos = [line.strip() for line in f if line.strip()]
+
+    if not circuitos or not autos:
+        raise ValueError("¡Atención! Uno de los archivos (circuitos.txt o autos.txt) está vacío.")
+
     return random.choice(circuitos), random.choice(autos)
 
 def actualizar_servidor_ftp(circuito, auto):
@@ -29,11 +37,9 @@ def actualizar_servidor_ftp(circuito, auto):
         ftp.connect(FTP_HOST, FTP_PORT)
         ftp.login(FTP_USER, FTP_PASS)
         
-        # Descargamos el archivo de configuración actual
         with open('server_cfg.ini', 'wb') as f:
             ftp.retrbinary('RETR cfg/server_cfg.ini', f.write)
             
-        # Modificamos el circuito localmente
         with open('server_cfg.ini', 'r', encoding='utf-8') as f:
             lineas = f.readlines()
             
@@ -46,7 +52,6 @@ def actualizar_servidor_ftp(circuito, auto):
                 else:
                     f.write(linea)
                     
-        # Volvemos a subir el archivo modificado
         with open('server_cfg.ini', 'rb') as f:
             ftp.storbinary('STOR cfg/server_cfg.ini', f)
             
@@ -59,13 +64,9 @@ def actualizar_servidor_ftp(circuito, auto):
 async def on_ready():
     print(f'Bot ejecutándose en la nube de GitHub Actions...')
     
-    # 1. Elegir circuito y auto
     circuito, auto = elegir_aleatorio()
-    
-    # 2. Actualizar el servidor de Assetto Corsa por FTP
     actualizar_servidor_ftp(circuito, auto)
     
-    # 3. Mandar el aviso a Discord
     canal = client.get_channel(CANAL_AVISOS_ID)
     if canal:
         embed = discord.Embed(
@@ -79,7 +80,6 @@ async def on_ready():
         
         await canal.send(embed=embed)
     
-    # Cerramos el bot una vez que cumple su tarea en GitHub Actions
     await client.close()
 
 client.run(DISCORD_TOKEN)
