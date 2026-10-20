@@ -27,10 +27,8 @@ def elegir_combinacion():
     categorias = data.get("categorias", [])
 
     if not circuitos or not categorias:
-        data = data_error = "El archivo categorias.json está incompleto o vacío."
-        raise ValueError(data_error)
+        raise ValueError("El archivo categorias.json está incompleto o vacío.")
 
-    # Elige un circuito al azar y una categoría entera al azar
     circuito_elegido = random.choice(circuitos)
     categoria_elegida = random.choice(categorias)
 
@@ -45,7 +43,11 @@ def actualizar_servidor_sftp(circuito, categoria):
         sftp = paramiko.SFTPClient.from_transport(transport)
         print("¡Conectado por SFTP con éxito!")
         
-        # 1. ACTUALIZAR CIRCUITO EN server_cfg.ini
+        # Obtenemos el modelo principal de 'cars' definido en esa categoría en el JSON
+        modelo_cars = categoria.get("cars", "bmw_m3_e30")
+        slots = categoria.get("slots", [])
+        
+        # 1. ACTUALIZAR CIRCUITO Y CARS EN server_cfg.ini
         ruta_cfg = 'cfg/server_cfg.ini'
         local_cfg = 'server_cfg.ini'
         
@@ -60,19 +62,19 @@ def actualizar_servidor_sftp(circuito, categoria):
                     f.write(f'TRACK={circuito}\n')
                 elif linea.startswith('CONFIG_TRACK='):
                     f.write('CONFIG_TRACK=\n')
+                elif linea.startswith('CARS='):
+                    # Asigna el modelo exacto definido en el JSON para esta categoría
+                    f.write(f'CARS={modelo_cars}\n')
                 else:
                     f.write(linea)
                     
         sftp.put(local_cfg, ruta_cfg)
-        print("¡Circuito actualizado en server_cfg.ini con éxito!")
+        print(f"¡Circuito ({circuito}) y Cars ({modelo_cars}) actualizados en server_cfg.ini con éxito!")
 
-        # 2. GENERAR Y ACTUALIZAR EL entry_list.ini SEGÚN LA CATEGORÍA
+        # 2. GENERAR Y ACTUALIZAR EL entry_list.ini
         ruta_entry = 'cfg/entry_list.ini'
         
-        # Construimos el texto del entry_list.ini basado en los slots de la categoría elegida
         contenido_entry = ""
-        slots = categoria.get("slots", [])
-        
         for index, auto in enumerate(slots):
             contenido_entry += f"[CAR_{index}]\n"
             contenido_entry += f"MODEL={auto['model']}\n"
@@ -83,7 +85,6 @@ def actualizar_servidor_sftp(circuito, categoria):
             contenido_entry += "GUID=\n"
             contenido_entry += "BALLAST=0\n\n"
 
-        # Guardamos el archivo localmente y lo subimos por SFTP
         local_entry = 'entry_list.ini'
         with open(local_entry, 'w', encoding='utf-8') as f:
             f.write(contenido_entry)
