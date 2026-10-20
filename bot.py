@@ -1,5 +1,6 @@
 import os
 import random
+import json
 import datetime
 import discord
 import paramiko
@@ -15,22 +16,27 @@ SFTP_PORT = 2022  # Puerto SFTP de Minehost
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
-def elegir_aleatorio():
-    if not os.path.exists('circuitos.txt') or not os.path.exists('autos.txt'):
-        raise FileNotFoundError("No se encuentran los archivos circuitos.txt o autos.txt")
+def elegir_combinacion():
+    if not os.path.exists('categorias.json'):
+        raise FileNotFoundError("No se encuentra el archivo categorias.json en el repositorio.")
 
-    with open('circuitos.txt', 'r', encoding='utf-8') as f:
-        circuitos = [line.strip() for line in f if line.strip()]
-        
-    with open('autos.txt', 'r', encoding='utf-8') as f:
-        autos = [line.strip() for line in f if line.strip()]
+    with open('categorias.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
 
-    if not circuitos or not autos:
-        raise ValueError("Uno de los archivos de texto está vacío.")
+    circuitos = data.get("circuitos", [])
+    categorias = data.get("categorias", [])
 
-    return random.choice(circuitos), random.choice(autos)
+    if not circuitos or not categorias:
+        data = data_error = "El archivo categorias.json está incompleto o vacío."
+        raise ValueError(data_error)
 
-def actualizar_servidor_sftp(circuito, auto):
+    # Elige un circuito al azar y una categoría entera al azar
+    circuito_elegido = random.choice(circuitos)
+    categoria_elegida = random.choice(categorias)
+
+    return circuito_elegido, categoria_elegida
+
+def actualizar_servidor_sftp(circuito, categoria):
     try:
         print(f"Conectando por SFTP a {SFTP_HOST}:{SFTP_PORT}...")
         
@@ -60,25 +66,30 @@ def actualizar_servidor_sftp(circuito, auto):
         sftp.put(local_cfg, ruta_cfg)
         print("¡Circuito actualizado en server_cfg.ini con éxito!")
 
-        # 2. ACTUALIZAR AUTOS EN entry_list.ini
+        # 2. GENERAR Y ACTUALIZAR EL entry_list.ini SEGÚN LA CATEGORÍA
         ruta_entry = 'cfg/entry_list.ini'
+        
+        # Construimos el texto del entry_list.ini basado en los slots de la categoría elegida
+        contenido_entry = ""
+        slots = categoria.get("slots", [])
+        
+        for index, auto in enumerate(slots):
+            contenido_entry += f"[CAR_{index}]\n"
+            contenido_entry += f"MODEL={auto['model']}\n"
+            contenido_entry += f"SKIN={auto['skin']}\n"
+            contenido_entry += "SPECTATOR_MODE=0\n"
+            contenido_entry += "DRIVERNAME=\n"
+            contenido_entry += "TEAM=\n"
+            contenido_entry += "GUID=\n"
+            contenido_entry += "BALLAST=0\n\n"
+
+        # Guardamos el archivo localmente y lo subimos por SFTP
         local_entry = 'entry_list.ini'
-        
-        sftp.get(ruta_entry, local_entry)
-        
-        with open(local_entry, 'r', encoding='utf-8') as f:
-            lineas_entry = f.readlines()
-            
         with open(local_entry, 'w', encoding='utf-8') as f:
-            for linea in lineas_entry:
-                # Reemplazamos el MODEL en cada slot de la grilla
-                if linea.startswith('MODEL='):
-                    f.write(f'MODEL={auto}\n')
-                else:
-                    f.write(linea)
-                    
+            f.write(contenido_entry)
+            
         sftp.put(local_entry, ruta_entry)
-        print("¡Grilla de autos actualizada en entry_list.ini con éxito!")
+        print(f"¡Grilla de la categoría '{categoria['nombre']}' actualizada en entry_list.ini con éxito!")
         
         sftp.close()
         transport.close()
@@ -89,18 +100,18 @@ def actualizar_servidor_sftp(circuito, auto):
 async def on_ready():
     print(f'Bot ejecutándose en la nube de GitHub Actions...')
     
-    circuito, auto = elegir_aleatorio()
-    actualizar_servidor_sftp(circuito, auto)
+    circuito, categoria = elegir_combinacion()
+    actualizar_servidor_sftp(circuito, categoria)
     
     canal = client.get_channel(CANAL_AVISOS_ID)
     if canal:
         embed = discord.Embed(
-            title="🏁 ¡NUEVA ROTACIÓN DIARIA EN COSTA SIM RACING! 🏁",
-            description="El sistema ha seleccionado al azar los nuevos retos para las próximas 24 horas.",
+            title="🏁 ¡NUEVA CATEGORÍA Y ROTACIÓN DIARIA! 🏁",
+            description="El sistema ha seleccionado una nueva categoría de vehículos y circuito para las próximas 24 horas.",
             color=discord.Color.green()
         )
+        embed.add_field(name="🏆 Categoría Asignada", value=f"`{categoria['nombre']}`", inline=False)
         embed.add_field(name="📍 Circuito", value=f"`{circuito}`", inline=False)
-        embed.add_field(name="🏎️ Auto Asignado", value=f"`{auto}`", inline=False)
         embed.set_footer(text="Actualización automática diaria | Costa Sim Racing")
         
         await canal.send(embed=embed)
