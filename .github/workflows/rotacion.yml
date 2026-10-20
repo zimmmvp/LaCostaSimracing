@@ -1,31 +1,5 @@
-name: Rotacion Diaria Assetto Corsa
-
 on:
   schedule:
-    # Se ejecuta todos los dias a las 08:00 UTC (Que son las 05:00 AM de Argentina)
-    - cron: '0 8 * * *'
-  workflow_dispatch: # Permite ejecutarlo a mano desde la web de GitHub cuando quieras probarlo
-
-jobs:
-  run-bot:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Tomar código del repositorio
-        uses: actions/checkout@v4
-
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Instalar librerías necesarias
-        run: pip install -r requirements.txt
-
-      - name: Ejecutar el Bot
-        env:
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          CANAL_AVISOS_ID: ${{ secrets.CANAL_AVISOS_ID }}
-          FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USER: ${{ secrets.FTP_USER }}
-          FTP_PASS: ${{ secrets.FTP_PASS }}
-        run: python bot.py
+    # 06:50 AM de Argentina son las 09:50 AM en UTC (-3 horas)
+    - cron: '50 9 * * *'
+  workflow_dispatch: # Esto te permite seguir ejecutándolo a mano cuando quieras
