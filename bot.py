@@ -34,16 +34,27 @@ def elegir_aleatorio():
 def actualizar_servidor_ftp(circuito, auto):
     try:
         ftp = FTP()
+        print(f"Conectando a FTP: {FTP_HOST}...")
         ftp.connect(FTP_HOST, FTP_PORT)
         ftp.login(FTP_USER, FTP_PASS)
+        print("¡Conectado al FTP con éxito!")
         
-        with open('server_cfg.ini', 'wb') as f:
-            ftp.retrbinary('RETR cfg/server_cfg.ini', f.write)
+        # Probamos descargar el archivo desde la carpeta cfg/
+        nombre_archivo = 'server_cfg.ini'
+        try:
+            ftp.cwd('cfg')
+            print("Entró a la carpeta cfg/")
+        except Exception:
+            print("No se pudo entrar a la carpeta cfg/, intentando en la raíz...")
             
-        with open('server_cfg.ini', 'r', encoding='utf-8') as f:
+        with open(nombre_archivo, 'wb') as f:
+            ftp.retrbinary(f'RETR {nombre_archivo}', f.write)
+            
+        # Modificamos el archivo localmente
+        with open(nombre_archivo, 'r', encoding='utf-8') as f:
             lineas = f.readlines()
             
-        with open('server_cfg.ini', 'w', encoding='utf-8') as f:
+        with open(nombre_archivo, 'w', encoding='utf-8') as f:
             for linea in lineas:
                 if linea.startswith('TRACK='):
                     f.write(f'TRACK={circuito}\n')
@@ -52,13 +63,14 @@ def actualizar_servidor_ftp(circuito, auto):
                 else:
                     f.write(linea)
                     
-        with open('server_cfg.ini', 'rb') as f:
-            ftp.storbinary('STOR cfg/server_cfg.ini', f)
+        # Volvemos a subir el archivo modificado
+        with open(nombre_archivo, 'rb') as f:
+            ftp.storbinary(f'STOR {nombre_archivo}', f)
             
         ftp.quit()
-        print("¡Servidor actualizado por FTP con éxito!")
+        print("¡Servidor actualizado y subido por FTP con éxito!")
     except Exception as e:
-        print(f"Error al actualizar por FTP: {e}")
+        print(f"ERROR CRÍTICO EN FTP: {e}")
 
 @client.event
 async def on_ready():
